@@ -1,0 +1,69 @@
+version: '3.9'
+
+services:
+
+  mongo:
+    image: mongo:7
+    container_name: flowdeploy-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - flowdeploy-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./flowdeploy-api
+    container_name: flowdeploy-api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - flowdeploy-net
+
+  runner:
+    build:
+      context: ./flowdeploy-runner
+    container_name: flowdeploy-runner
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - API_BASE_URL=http://api:5000
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - api
+    networks:
+      - flowdeploy-net
+
+  client:
+    build:
+      context: ./flowdeploy-client
+    container_name: flowdeploy-client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - flowdeploy-net
+
+volumes:
+  mongo_data:
+
+networks:
+  flowdeploy-net:
+    driver: bridge
