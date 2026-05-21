@@ -3,6 +3,7 @@ import requests
 import os
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+from datetime import datetime, timezone
 
 load_dotenv()
 
@@ -70,28 +71,40 @@ def run_job(job: dict):
     step_results = []
     job_passed   = True
 
-    # ── run each step in order ────────────────────────
-    for step in steps:
-        step_name = step['name']                                    # ← indented 8 spaces
-        stream_log(job_id, f"\n━━━ Step: {step_name} ━━━", step_name)
+    
 
-        passed = run_step(
-            job_id,
-            step,
-            env_vars,
-            repo_url=pipeline.get('repoUrl'),
-            commit_sha=job.get('commitSha')
-        )
+# run each step in order
+for step in steps:
+    step_name  = step['name']
+    step_start = datetime.now(timezone.utc)
 
-        step_results.append({
-            'name':   step_name,
-            'status': 'passed' if passed else 'failed',
-        })
+    stream_log(job_id, f"\n━━━ Step: {step_name} ━━━", step_name)
 
-        if not passed:
-            job_passed = False
-            stream_log(job_id, f"✗ Pipeline stopped at: {step_name}", "system", 'stderr')
-            break                                                   # stop on first failure
+    passed = run_step(
+        job_id,
+        step,
+        env_vars,
+        repo_url=pipeline.get('repoUrl'),
+        commit_sha=job.get('commitSha')
+    )
+
+    step_end      = datetime.now(timezone.utc)
+    duration_secs = round((step_end - step_start).total_seconds(), 1)
+
+    stream_log(job_id, f"⏱ Duration: {duration_secs}s", step_name)
+
+    step_results.append({
+        'name':       step_name,
+        'status':     'passed' if passed else 'failed',
+        'startedAt':  step_start.isoformat(),
+        'finishedAt': step_end.isoformat(),
+        'duration':   duration_secs
+    })
+
+    if not passed:
+        job_passed = False
+        stream_log(job_id, f"✗ Pipeline stopped at: {step_name}", "system", 'stderr')
+        break
 
     # ── final status ──────────────────────────────────
     final_status = 'passed' if job_passed else 'failed'

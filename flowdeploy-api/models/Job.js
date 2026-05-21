@@ -5,7 +5,8 @@ const stepSchema = new Schema({
   status:     { type: String, enum: ['pending', 'running', 'passed', 'failed'], default: 'pending' },
   startedAt:  Date,
   finishedAt: Date,
-  exitCode:   Number
+  exitCode:   Number,
+  duration:   Number
 }, { _id: false })
 
 const jobSchema = new Schema({
