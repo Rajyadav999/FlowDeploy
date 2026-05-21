@@ -4,6 +4,7 @@ const cors = require('cors')
 const morgan = require('morgan')
 require('dotenv').config()
 
+
 const app = express()
 
 // ── Middleware ────────────────────────────────
@@ -17,11 +18,16 @@ app.use('/api/jobs',      require('./routes/jobs'))
 app.use('/api/webhooks',  require('./routes/webhooks'))
 app.use('/api/logs',      require('./routes/logs'))
 app.use('/api/auth',      require('./routes/auth'))
-
+app.use('/api/badges',    require('./routes/badges'))
 // ── Health check ──────────────────────────────
 app.get('/', (req, res) => {
   res.json({ status: 'FlowDeploy API running' })
 })
+
+app.use(cors({
+  origin: '*',
+  exposedHeaders: ['Content-Type']
+}))
 
 // ── MongoDB connection ────────────────────────
 mongoose

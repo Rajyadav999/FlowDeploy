@@ -154,7 +154,53 @@ export default function PipelineDetail() {
           </button>
         </div>
       </div>
+      
+            
+    {/* badge section */}
+    {pipeline && (
+      <div style={{
+        maxWidth: '1000px', margin: '0 auto',
+        padding: '20px 24px 0',
+        display: 'flex', alignItems: 'center', gap: '16px'
+      }}>
+    {/* live badge preview */}
+    <img
+      src={`http://localhost:5000/api/badges/${id}?t=${Date.now()}`}
+      alt="pipeline status badge"
+      style={{ height: '20px' }}
+      onError={(e) => { e.target.style.display = 'none' }}
+    />
+    {/* copyable markdown */}
+    <div style={{
+      flex: 1, background: 'var(--bg2)',
+      border: '1px solid var(--border)',
+      borderRadius: '6px', padding: '8px 12px',
+      fontFamily: 'var(--mono)', fontSize: '11px',
+      color: 'var(--text3)', overflow: 'hidden',
+      textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+    }}>
+      ![{pipeline.name}](http://localhost:5000/api/badges/{id})
+    </div>
 
+    {/* copy button */}
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(
+          `![${pipeline.name}](http://localhost:5000/api/badges/${id})`
+        )
+        alert('Badge markdown copied! Paste it in your GitHub README.')
+      }}
+      style={{
+        padding: '7px 14px', borderRadius: '6px',
+        background: 'var(--bg2)', color: 'var(--text2)',
+        border: '1px solid var(--border)', fontSize: '12px',
+        fontWeight: 500, flexShrink: 0
+      }}
+    >
+    Copy badge
+    </button>
+     </div>
+   )}
       {/* content */}
       <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
